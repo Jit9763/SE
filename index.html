@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>स्व-गणना (Self-Enumeration) पोर्टल - जनगणना 2027</title>
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TOP HEADER EXACTLY LIKE SCREENSHOT -->
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="font-controls">
+                <button class="font-btn">A+</button>
+                <button class="font-btn">A</button>
+                <button class="font-btn">A-</button>
+            </div>
+            
+            <div class="center-logos">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" alt="Emblem" class="emblem">
+                <div class="title-text">
+                    <div class="census-title">Census of India 2027</div>
+                    <div class="census-sub">Office of the Registrar General & Census Commissioner, India</div>
+                    <div class="census-min">Ministry of Home Affairs, Government of India</div>
+                </div>
+                <div class="census-logo-placeholder">
+                    <img src="assets/census_logo.png" alt="Census Logo" class="c-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/en/e/eb/Census_of_India_Logo.png'">
+                </div>
+            </div>
+
+            <div class="date-display">
+                <span class="date-btn" id="currentDate">13.02.2026</span>
+            </div>
+        </div>
+
+        <div class="sub-bar">
+            <div class="sub-title">मकान सूचीकरण कार्य – स्व-गणना</div>
+            <div class="sub-actions">
+                <span class="lang-text">🌐 Rajasthan</span>
+                <span class="logout-icon" onclick="app.logout()">🚪</span>
+            </div>
+        </div>
+        <div class="faq-row">
+            <button class="faq-btn" onclick="app.showModal('faqModal')">अक्सर पूछे जाने वाले प्रश्न</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- STEPPER -->
+        <div class="stepper-container" id="stepperContainer" style="display: none;">
+            <div class="stepper">
+                <div class="step active" id="step1">
+                    <div class="step-circle"><span>1</span></div>
+                    <div class="step-label">स्थान का विवरण</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step2">
+                    <div class="step-circle"><span>2</span></div>
+                    <div class="step-label">जनगणना घर का विवरण</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step3">
+                    <div class="step-circle"><span>3</span></div>
+                    <div class="step-label">सामान्य जानकारी</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step4">
+                    <div class="step-circle"><span>4</span></div>
+                    <div class="step-label">सुविधाएं</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step5">
+                    <div class="step-circle"><span>5</span></div>
+                    <div class="step-label">परिसंपत्तियां</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" id="step6">
+                    <div class="step-circle"><span>6</span></div>
+                    <div class="step-label">पूर्वावलोकन कर पुष्टि करें</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: LOGIN -->
+        <div id="screen-login" class="screen active">
+            <div class="card" style="max-width: 500px; margin: 2rem auto;">
+                <h2 style="color: var(--primary-dark); text-align: center; margin-bottom: 1.5rem;">स्व-गणना लॉगिन</h2>
+                
+                <form id="loginForm" onsubmit="event.preventDefault(); app.goToOTP();">
+                    <div class="input-group">
+                        <select class="m-input" id="loginState" required>
+                            <option value="">-- चयन करें --</option>
+                            <option value="RJ">Rajasthan</option>
+                        </select>
+                        <label class="m-label">राज्य/केंद्रशासित प्रदेश *</label>
+                    </div>
+                    
+                    <div class="input-group" style="display: flex; gap: 1rem; align-items: center;">
+                        <div class="captcha-box" id="captchaBox">A7X9P</div>
+                        <div class="input-group" style="flex:1; margin:0;">
+                            <input type="text" class="m-input" id="loginCaptcha" placeholder=" " required>
+                            <label class="m-label">कैप्चा *</label>
+                        </div>
+                    </div>
+
+                    <div id="loginExtended" class="hidden" style="margin-top: 1.5rem;">
+                        <div class="input-group">
+                            <input type="text" class="m-input" id="loginHeadName" placeholder=" " required>
+                            <label class="m-label">परिवार के मुखिया का नाम *</label>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="tel" class="m-input" id="loginMobile" pattern="[0-9]{10}" placeholder=" " required>
+                            <label class="m-label">मोबाइल नम्बर *</label>
+                        </div>
+
+                        <div class="input-group">
+                            <input type="email" class="m-input" id="loginEmail" placeholder=" ">
+                            <label class="m-label">ई-मेल (वैकल्पिक)</label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Verify & Proceed</button>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" id="loginNextBtn" onclick="app.showExtendedLogin()">अगला</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SCREEN: PROFILE (SUBMITTED STATE) -->
+        <div id="screen-profile" class="screen">
+            <div class="card form-container text-center" style="max-width: 800px; margin: 2rem auto;">
+                <h2 style="color: var(--primary-dark); font-size: 2rem; font-weight: bold; margin: 0;">उपयोगकर्ता विवरण</h2>
+                <p style="color: #6b7280; font-size: 1.1rem; margin-top: 5px; margin-bottom: 2rem;">प्रोफ़ाइल की जानकारी</p>
+
+                <div class="summary-container" style="text-align: left;">
+                    <div class="summary-header">
+                        <span style="font-size: 1.2rem;">👤</span> व्यक्तिगत जानकारी
+                    </div>
+                    <div class="se-id-box" style="margin: 0; border: none; background: white; padding: 20px;">
+                        <img src="assets/census_logo.png" class="watermark" onerror="this.src='https://upload.wikimedia.org/wikipedia/en/e/eb/Census_of_India_Logo.png'" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width: 250px;">
+                        <div style="position:relative; z-index:2;">
+                            <div class="summary-row" style="background: transparent;"><span>परिवार के मुखिया का नाम:</span><span id="prof-name">-</span></div>
+                            <div class="summary-row" style="background: transparent;"><span>मोबाइल नंबर:</span><span id="prof-mobile">-</span></div>
+                            <div class="summary-row" style="background: transparent;"><span>ई-मेल आई.डी:</span><span id="prof-email">-</span></div>
+                            <div class="summary-row" style="background: transparent; font-weight: bold; border-top: 1px solid #eee; margin-top: 10px; padding-top: 20px;"><span>SE ID:</span><span id="prof-seid" style="color: var(--primary-dark); font-size: 1.2rem;">-</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <button class="btn btn-secondary" onclick="app.logout()">लॉग आउट</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: DASHBOARD -->
+        <div id="screen-dashboard" class="screen">
+            <div class="card" style="max-width: 600px; margin: 2rem auto; text-align: center;">
+                <h2 style="color: var(--primary-dark);">स्व-गणना डैशबोर्ड</h2>
+                <p style="margin: 1.5rem 0;">जनगणना 2027 में आपका स्वागत है। आप अपनी स्व-गणना प्रक्रिया यहाँ से शुरू कर सकते हैं।</p>
+                
+                <div style="background: #f0fdf4; padding: 1.5rem; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 2rem;">
+                    <p style="font-weight: bold; color: #166534;">नया पंजीकरण शुरू करें</p>
+                    <p style="font-size: 0.9rem; color: #15803d;">यदि आपने अभी तक अपना विवरण सबमिट नहीं किया है, तो नीचे दिए गए बटन पर क्लिक करें।</p>
+                </div>
+                
+                <button class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;" onclick="app.checkRegistrationStatus()">नया पंजीकरण / विवरण भरें</button>
+            </div>
+        </div>
+
+        <!-- SCREEN: OTP -->
+        <div id="screen-otp" class="screen">
+            <div class="card" style="max-width: 400px; margin: 2rem auto; text-align: center;">
+                <h2 style="color: var(--primary-dark);">ओटीपी सत्यापन</h2>
+                <p style="margin: 1rem 0;">आपके मोबाइल नंबर <strong id="otpMobileDisplay"></strong> पर एक ओटीपी भेजा गया है।</p>
+                
+                <div class="otp-inputs">
+                    <input type="text" maxlength="1" onkeyup="app.focusNext(this, 1)" id="otp1">
+                    <input type="text" maxlength="1" onkeyup="app.focusNext(this, 2)" id="otp2">
+                    <input type="text" maxlength="1" onkeyup="app.focusNext(this, 3)" id="otp3">
+                    <input type="text" maxlength="1" onkeyup="app.focusNext(this, 4)" id="otp4">
+                </div>
+                
+                <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="app.verifyOTP()">सत्यापित करें</button>
+            </div>
+        </div>
+
+        <!-- SCREEN: LOCATION DETAILS (STEP 1) -->
+        <div id="screen-location" class="screen">
+            <div class="card form-container">
+                <div class="form-row-3">
+                    <div class="input-group">
+                        <input type="text" class="m-input" value="Rajasthan" disabled>
+                        <label class="m-label">राज्य/केंद्रशासित प्रदेश</label>
+                    </div>
+                    <div class="input-group">
+                        <select class="m-input" id="locDistrict" required>
+                            <option value="">-- चयन करें --</option>
+                            <option value="Ajmer">अजमेर</option>
+                            <option value="Alwar">अलवर</option>
+                            <option value="Banswara">बांसवाड़ा</option>
+                            <option value="Barmer">बाड़मेर</option>
+                            <option value="Bharatpur">भरतपुर</option>
+                            <option value="Bhilwara">भीलवाड़ा</option>
+                            <option value="Bikaner">बीकानेर</option>
+                            <option value="Churu">चूरू</option>
+                            <option value="Dausa">दौसा</option>
+                            <option value="Dholpur">धौलपुर</option>
+                            <option value="Dungarpur">डूंगरपुर</option>
+                            <option value="Jaipur">जयपुर</option>
+                            <option value="Jaisalmer">जैसलमेर</option>
+                            <option value="Jalore">जालौर</option>
+                            <option value="Jodhpur">जोधपुर</option>
+                            <option value="Kota">कोटा</option>
+                            <option value="Nagaur">नागौर</option>
+                            <option value="Pali">पाली</option>
+                            <option value="Sikar">सीकर</option>
+                            <option value="Udaipur">उदयपुर</option>
+                        </select>
+                        <label class="m-label">ज़िला <span style="color: red;">*</span></label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" class="m-input" id="locPincode" placeholder=" ">
+                        <label class="m-label">पिन कोड</label>
+                    </div>
+                </div>
+
+                <div class="search-row" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <div class="input-group" style="flex: 1; margin: 0;">
+                        <input type="text" class="m-input" id="locArea" placeholder=" " list="areaList">
+                        <datalist id="areaList">
+                            <option value="भिणाय (Bhinai)">
+                            <option value="अजमेर (Ajmer)">
+                        </datalist>
+                        <label class="m-label">ग्राम/नगर/स्थान/हेमलेट/लैंडमार्क <span style="color: red;">*</span></label>
+                    </div>
+                    <button class="btn btn-primary" style="padding: 0 2rem;" onclick="app.searchLocation()">खोज</button>
+                </div>
+
+                <div class="map-wrapper" style="margin-top: 2rem;">
+                    <p style="margin-bottom: 0.5rem; font-weight: bold; color: var(--primary-dark);">मानचित्र में अपने आवास को खोजें:</p>
+                    <div id="realMap" style="height: 400px; width: 100%; border: 1px solid #ccc; border-radius: 4px;"></div>
+                </div>
+
+                <div class="action-buttons" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button class="btn btn-primary" onclick="app.confirmLocation()">सहेजे और आगे बढ़े</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: QUESTIONNAIRE PART 1 (STEP 2) -->
+        <div id="screen-q1" class="screen">
+            <div class="card form-container">
+                <h3 class="section-title">जनगणना मकान का विवरण</h3>
+                <p style="font-size: 13px; color: #6b7280; font-style: italic; margin: -10px 0 15px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; line-height: 1.5;">
+                    'जनगणना मकान' एक भवन या भवन का वह भाग या बहु मंजिला भवन में एक फ्लैट जिसका उपयोग अथवा पहचान एक पृथक इकाई के रूप में है जिसमें मुख्य प्रवेश द्वार अलग से सड़क या साझे अहाते अथवा सीढ़ियों आदि में खुलता है ।
+                </p>
+                <div class="q-table">
+                    <img src="assets/census_logo.png" class="watermark" onerror="this.src='https://upload.wikimedia.org/wikipedia/en/e/eb/Census_of_India_Logo.png'">
+                    <div class="q-row">
+                        <div class="q-col-left">2. भवन नम्बर <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="text" class="t-input" disabled value="-"></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">3. जनगणना मकान नम्बर <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="text" class="t-input" disabled value="-"></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">जनगणना मकान के फर्श में प्रयुक्त प्रमुख सामग्री <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q4" value="1"> मिट्टी</label>
+                                <label class="radio-item"><input type="radio" name="q4" value="2"> लकड़ी/बांस</label>
+                                <label class="radio-item"><input type="radio" name="q4" value="3"> पक्की ईंट</label>
+                                <label class="radio-item"><input type="radio" name="q4" value="4"> पत्थर</label>
+                                <label class="radio-item"><input type="radio" name="q4" value="5"> सीमेंट</label>
+                                <label class="radio-item"><input type="radio" name="q4" value="6"> मोजेक/फर्श की टाइल</label>
+                                <label class="radio-item"><input type="radio" name="q4" value="7"> अन्य कोई</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">जनगणना मकान के दीवार में प्रयुक्त प्रमुख सामग्री <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q5" value="1"> घास/फूस/बाँस आदि</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="2"> प्लास्टिक/पॉलिथीन</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="3"> मिट्टी/कच्ची ईंट</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="4"> लकड़ी</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="5"> बिना गारे का पत्थर</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="6"> गारे से जुड़ा पत्थर</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="7"> जी.आई./धातु/एस्बेस्टस शीट</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="8"> पक्की ईंट</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="9"> कंक्रीट</label>
+                                <label class="radio-item"><input type="radio" name="q5" value="10"> अन्य</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">जनगणना मकान के छत में प्रयुक्त प्रमुख सामग्री <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q6" value="1"> घास/फूस/बांस/लकड़ी/मिट्टी</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="2"> प्लास्टिक/पॉलिथीन</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="3"> हाथ से बनी खपरैल</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="4"> मशीन से बनी खपरैल</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="5"> पक्की ईंट</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="6"> पत्थर</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="7"> स्लेट</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="8"> जी.आई./धातु/एस्बेस्टस शीट</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="9"> कंक्रीट</label>
+                                <label class="radio-item"><input type="radio" name="q6" value="10"> अन्य</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">7. जनगणना मकान के उपयोग <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="text" class="t-input" disabled value="-"></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">8. मकान की स्थिति <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q8" value="1"> अच्छी</label>
+                                <label class="radio-item"><input type="radio" name="q8" value="2"> रहने योग्य</label>
+                                <label class="radio-item"><input type="radio" name="q8" value="3"> जीर्ण-शीर्ण</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">9. परिवार क्रमांक <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="text" class="t-input" disabled value="-"></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">10. रहने वाले व्यक्तियों की संख्या <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="number" class="t-input" id="q10" placeholder=" " min="1"></div>
+                    </div>
+                </div>
+                <div class="action-buttons" style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                    <button class="btn btn-secondary" onclick="app.goToScreen('screen-location', 1)">पिछला</button>
+                    <button class="btn btn-primary" onclick="app.saveAndProceed('screen-q2', 3)">सहेजे और आगे बढ़े</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: QUESTIONNAIRE PART 2 (STEP 3) -->
+        <div id="screen-q2" class="screen">
+            <div class="card form-container">
+                <h3 class="section-title">सामान्य जानकारी (मुखिया का विवरण)</h3>
+                <div class="q-table">
+                    <img src="assets/census_logo.png" class="watermark" onerror="this.src='https://upload.wikimedia.org/wikipedia/en/e/eb/Census_of_India_Logo.png'">
+                    <div class="q-row">
+                        <div class="q-col-left">11. परिवार के मुखिया का नाम <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="text" class="t-input" id="q11" disabled></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">परिवार के मुखिया का नाम (चुनी हुई भाषा) <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right">
+                            <div style="position: relative; width: 100%;">
+                                <input type="text" class="t-input" placeholder=" ">
+                                <span style="position: absolute; right: 10px; top: 10px; cursor: pointer;">⌨️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">12. लिंग <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right">
+                            <div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q12" value="1"> पुरुष</label>
+                                <label class="radio-item"><input type="radio" name="q12" value="2"> स्त्री</label>
+                                <label class="radio-item"><input type="radio" name="q12" value="3"> ट्रांसजेंडर व्यक्ति</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">13. जाति विवरण <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q13" value="1"> अनुसूचित जाति (SC)</label>
+                                <label class="radio-item"><input type="radio" name="q13" value="2"> अनुसूचित जनजाति (ST)</label>
+                                <label class="radio-item"><input type="radio" name="q13" value="3"> अन्य</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">14. स्वामित्व की स्थिति <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q14" value="1"> अपना</label>
+                                <label class="radio-item"><input type="radio" name="q14" value="2"> किराये का</label>
+                                <label class="radio-item"><input type="radio" name="q14" value="3"> अन्य</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">15. उपलब्ध कमरों की संख्या <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="number" class="t-input" id="q15" placeholder=" "></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">16. विवाहित दम्पत्तियों की संख्या <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="number" class="t-input" id="q16" placeholder=" "></div>
+                    </div>
+                </div>
+                <div class="action-buttons" style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                    <button class="btn btn-secondary" onclick="app.goToScreen('screen-q1', 2)">पिछला</button>
+                    <button class="btn btn-primary" onclick="app.saveAndProceed('screen-q3', 4)">सहेजे और आगे बढ़े</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: QUESTIONNAIRE PART 3 (STEP 4) -->
+        <div id="screen-q3" class="screen">
+            <div class="card form-container">
+                <h3 class="section-title">सुविधाएं</h3>
+                <div class="q-table">
+                    <img src="assets/census_logo.png" class="watermark" onerror="this.src='https://upload.wikimedia.org/wikipedia/en/e/eb/Census_of_India_Logo.png'">
+                    <div class="q-row">
+                        <div class="q-col-left">17. पेयजल का मुख्य स्रोत <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q17" value="1"> नल का पानी (उपचारित)</label>
+                                <label class="radio-item"><input type="radio" name="q17" value="2"> नल का पानी (अनुपचारित)</label>
+                                <label class="radio-item"><input type="radio" name="q17" value="3"> ढका हुआ कुआँ</label>
+                                <label class="radio-item"><input type="radio" name="q17" value="4"> बिना ढका कुआँ</label>
+                                <label class="radio-item"><input type="radio" name="q17" value="5"> हैंडपंप</label>
+                                <label class="radio-item"><input type="radio" name="q17" value="6"> ट्यूबवेल/बोरहोल</label>
+                                <label class="radio-item"><input type="radio" name="q17" value="7"> झरना/नदी/तालाब</label>
+                                <label class="radio-item"><input type="radio" name="q17" value="8"> अन्य स्रोत</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">18. पेयजल स्रोत की उपलब्धता <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q18" value="1"> परिसर के अंदर</label>
+                                <label class="radio-item"><input type="radio" name="q18" value="2"> परिसर के निकट</label>
+                                <label class="radio-item"><input type="radio" name="q18" value="3"> दूर</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">19. प्रकाश का मुख्य स्रोत <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q19" value="1"> बिजली</label>
+                                <label class="radio-item"><input type="radio" name="q19" value="2"> मिट्टी का तेल</label>
+                                <label class="radio-item"><input type="radio" name="q19" value="3"> सौर ऊर्जा</label>
+                                <label class="radio-item"><input type="radio" name="q19" value="4"> अन्य तेल</label>
+                                <label class="radio-item"><input type="radio" name="q19" value="5"> अन्य</label>
+                                <label class="radio-item"><input type="radio" name="q19" value="6"> कोई प्रकाश नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">20. शौचालय की सुलभता <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q20" value="1"> हाँ</label>
+                                <label class="radio-item"><input type="radio" name="q20" value="2"> नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">21. शौचालय का प्रकार <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q21" value="1"> पाइप सीवर से जुड़ा फ्लश</label>
+                                <label class="radio-item"><input type="radio" name="q21" value="2"> सेप्टिक टैंक से जुड़ा फ्लश</label>
+                                <label class="radio-item"><input type="radio" name="q21" value="3"> पिट शौचालय</label>
+                                <label class="radio-item"><input type="radio" name="q21" value="4"> अन्य</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">22. गंदे पानी की निकासी <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q22" value="1"> बंद नाली</label>
+                                <label class="radio-item"><input type="radio" name="q22" value="2"> खुली नाली</label>
+                                <label class="radio-item"><input type="radio" name="q22" value="3"> कोई नाली नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">23. स्नान सुविधा <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q23" value="1"> हाँ (छत सहित)</label>
+                                <label class="radio-item"><input type="radio" name="q23" value="2"> हाँ (बिना छत)</label>
+                                <label class="radio-item"><input type="radio" name="q23" value="3"> नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">24. रसोई घर / एलपीजी <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q24" value="1"> घर के अंदर (रसोईघर है)</label>
+                                <label class="radio-item"><input type="radio" name="q24" value="2"> घर के अंदर (रसोईघर नहीं)</label>
+                                <label class="radio-item"><input type="radio" name="q24" value="3"> घर के बाहर (रसोईघर है)</label>
+                                <label class="radio-item"><input type="radio" name="q24" value="4"> घर के बाहर (रसोईघर नहीं)</label>
+                                <label class="radio-item"><input type="radio" name="q24" value="5"> खाना नहीं पकता</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">25. मुख्य ईंधन <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q25" value="1"> लकड़ी/उपले/फसल अवशेष</label>
+                                <label class="radio-item"><input type="radio" name="q25" value="2"> एलपीजी/पीएनजी</label>
+                                <label class="radio-item"><input type="radio" name="q25" value="3"> बिजली/सौर ऊर्जा</label>
+                                <label class="radio-item"><input type="radio" name="q25" value="4"> बायोगैस</label>
+                                <label class="radio-item"><input type="radio" name="q25" value="5"> अन्य</label>
+                            </div></div>
+                    </div>
+                </div>
+                <div class="action-buttons" style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                    <button class="btn btn-secondary" onclick="app.goToScreen('screen-q2', 3)">पिछला</button>
+                    <button class="btn btn-primary" onclick="app.saveAndProceed('screen-q4', 5)">सहेजे और आगे बढ़े</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: QUESTIONNAIRE PART 4 (STEP 5) -->
+        <div id="screen-q4" class="screen">
+            <div class="card form-container">
+                <h3 class="section-title">परिसंपत्तियां</h3>
+                <div class="q-table">
+                    <img src="assets/census_logo.png" class="watermark" onerror="this.src='https://upload.wikimedia.org/wikipedia/en/e/eb/Census_of_India_Logo.png'">
+                    <div class="q-row">
+                        <div class="q-col-left">26. रेडियो/ट्रांजिस्टर <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q26" value="1"> हाँ</label>
+                                <label class="radio-item"><input type="radio" name="q26" value="2"> नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">27. टेलीविजन <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q27" value="1"> हाँ</label>
+                                <label class="radio-item"><input type="radio" name="q27" value="2"> नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">28. इंटरनेट सुविधा <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q28" value="1"> हाँ</label>
+                                <label class="radio-item"><input type="radio" name="q28" value="2"> नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">29. लैपटॉप/कंप्युटर <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q29" value="1"> हाँ (इंटरनेट के साथ)</label>
+                                <label class="radio-item"><input type="radio" name="q29" value="2"> हाँ (बिना इंटरनेट)</label>
+                                <label class="radio-item"><input type="radio" name="q29" value="3"> नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">30. टेलीफोन/मोबाइल <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q30" value="1"> केवल लैंडलाइन</label>
+                                <label class="radio-item"><input type="radio" name="q30" value="2"> केवल मोबाइल</label>
+                                <label class="radio-item"><input type="radio" name="q30" value="3"> दोनों</label>
+                                <label class="radio-item"><input type="radio" name="q30" value="4"> कोई नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">31. वाहन (2-wheeler) <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q31" value="1"> साइकिल</label>
+                                <label class="radio-item"><input type="radio" name="q31" value="2"> स्कूटर/मोटर साइकिल</label>
+                                <label class="radio-item"><input type="radio" name="q31" value="3"> दोनों</label>
+                                <label class="radio-item"><input type="radio" name="q31" value="4"> कोई नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">32. कार/जीप/वैन <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q32" value="1"> हाँ</label>
+                                <label class="radio-item"><input type="radio" name="q32" value="2"> नहीं</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">33. मुख्य अनाज <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><div class="radio-stack">
+                                <label class="radio-item"><input type="radio" name="q33" value="1"> चावल</label>
+                                <label class="radio-item"><input type="radio" name="q33" value="2"> गेहूं</label>
+                                <label class="radio-item"><input type="radio" name="q33" value="3"> ज्वार/बाजरा/मक्का</label>
+                                <label class="radio-item"><input type="radio" name="q33" value="4"> अन्य</label>
+                            </div></div>
+                    </div>
+                    <div class="q-row">
+                        <div class="q-col-left">34. मोबाइल नम्बर <span class="q-info-icon">i</span></div>
+                        <div class="q-col-right"><input type="text" class="t-input" id="q34" disabled></div>
+                    </div>
+                </div>
+                <div class="action-buttons" style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                    <button class="btn btn-secondary" onclick="app.goToScreen('screen-q3', 4)">पिछला</button>
+                    <button class="btn btn-primary" onclick="app.saveAndProceed('screen-submit', 6)">सहेजे और आगे बढ़े</button>
+                </div>
+            </div>
+        </div>
+
+                <!-- SCREEN: SUBMIT REVIEW (STEP 6) -->
+        <div id="screen-submit" class="screen">
+            <div class="card form-container">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h2 style="color: var(--primary-dark); font-size: 2rem; font-weight: bold; margin: 0;">पूर्वावलोकन</h2>
+                    <p style="color: #6b7280; font-size: 1.1rem; margin-top: 5px;">परिवार पंजीकरण विवरण</p>
+                </div>
+
+                <!-- Dynamic Summary Content -->
+                <div id="dynamicSummary">
+                    <!-- Profile Section -->
+                    <div class="summary-container">
+                        <div class="summary-header">
+                            <span style="font-size: 1.2rem;">👤</span> परिवार के मुखिया का विवरण
+                        </div>
+                        <div class="summary-row"><span>मुखिया का नाम:</span><span id="sum-headName">-</span></div>
+                        <div class="summary-row"><span>मोबाइल नंबर:</span><span id="sum-mobile">-</span></div>
+                        <div class="summary-row"><span>लिंग:</span><span id="sum-gender">-</span></div>
+                    </div>
+
+                    <!-- Location Section -->
+                    <div class="summary-container">
+                        <div class="summary-header">
+                            <span style="font-size: 1.2rem;">📍</span> स्थान का विवरण
+                        </div>
+                        <div class="summary-row"><span>राज्य:</span><span id="sum-state">-</span></div>
+                        <div class="summary-row"><span>ज़िला:</span><span id="sum-district">-</span></div>
+                        <div class="summary-row"><span>क्षेत्र:</span><span id="sum-area">-</span></div>
+                    </div>
+
+                    <!-- Questionnaire Sections will be injected here -->
+                    <div id="summarySections"></div>
+                </div>
+
+                <div class="action-buttons" style="margin-top: 2rem; display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                    <button class="btn btn-outline-blue" onclick="app.goToScreen('screen-q4', 5)">← संशोधन के लिए वापस जाएं</button>
+                    <button class="btn btn-orange" onclick="app.showModal('draftModal')">💾 ड्राफ्ट के रूप में सेव करें</button>
+                    <button class="btn btn-green" onclick="app.showModal('submitModal')">पुष्टि करें और सबमिट करें →</button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+                <!-- SCREEN: SUCCESS -->
+        <div id="screen-success" class="screen">
+            <div class="card form-container text-center">
+                <div class="success-icon-large">✓</div>
+                <h2 style="color: var(--primary-dark); font-size: 1.8rem; margin-bottom: 10px;">सफलतापूर्वक सबमिट किया गया</h2>
+                <p style="color: #6b7280; font-size: 1.1rem;">आपका स्व-गणना फॉर्म सफलतापूर्वक सबमिट कर दिया गया है।</p>
+                
+                <div class="se-id-box">
+                    <img src="assets/census_logo.png" class="watermark" onerror="this.src='https://upload.wikimedia.org/wikipedia/en/e/eb/Census_of_India_Logo.png'" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);">
+                    <div style="position:relative; z-index:2;">
+                        <p style="font-size: 1.2rem; margin-bottom: 5px; color: #374151;">आपकी स्व-गणना आईडी (SE ID) है:</p>
+                        <div style="font-size: 1.8rem; font-weight: bold; color: var(--primary-dark); margin-bottom: 20px;" id="finalSEID">
+                            H84109676809
+                        </div>
+                        
+                        <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; font-style: italic; color: #4b5563; font-size: 1rem; margin-bottom: 15px;">
+                            आपसे अनुरोध है कि अपना मकान सूचीकरण (HLO) पूरा करने के लिए इस स्व-गणना आईडी (SE ID) को प्रगणक के साथ साझा करें। यदि नहीं, तो प्रगणक द्वारा एक नई गणना की आवश्यकता हो सकती है।
+                        </div>
+                        <p style="color: #6b7280; font-size: 1rem;">यह एसई आईडी आपके मोबाइल और ईमेल (यदि प्रदान किया गया हो) पर भेज दी गई है।</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+        <!-- Modals -->
+    <div class="modal-overlay" id="confirmLocModal">
+        <div class="modal">
+            <h3 class="modal-title" style="color: var(--primary-dark); border-bottom: 1px solid #ccc; padding-bottom: 10px;">स्थान की पुष्टि करें</h3>
+            <p class="modal-text" style="margin: 20px 0;">क्या आप सुनिश्चित हैं कि आपने सही स्थान और नक्शा चिह्नित किया है? गलत लोकेशन होने की स्थिति में, आपका स्व-गणना डेटा प्रगणक के पास नहीं पहुंचेगा।</p>
+            <div style="display:flex; gap:1rem; justify-content:flex-end;">
+                <button class="btn btn-secondary" onclick="app.hideModal('confirmLocModal')">रद्द करें</button>
+                <button class="btn btn-primary" onclick="app.hideModal('confirmLocModal'); app.saveAndProceed('screen-q1', 2)">पुष्टि करें</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="draftModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-alert-title">
+                <span class="icon-orange">💾</span> ड्राफ्ट सेव किया गया
+            </div>
+            <p class="modal-text" style="color: #6b7280; line-height: 1.6; font-size: 1.1rem; margin-bottom: 25px;">
+                आपका डेटा ड्राफ्ट के रूप में सेव किया गया है। आप इस 15-05-2026 तक संपादन कर सकते हैं और अंतिम रूप से सबमिट कर सकते हैं।
+            </p>
+            <div style="display:flex; gap:1rem; justify-content:flex-end;">
+                <button class="btn btn-red" onclick="app.hideModal('draftModal')">⊗ नहीं</button>
+                <button class="btn btn-green" onclick="app.hideModal('draftModal'); app.goToScreen('screen-submit', 6)">✓ हाँ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="submitModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-alert-title">
+                <span class="icon-orange">⚠️</span> अंतिम रूप से सबमिट करें
+            </div>
+            <p class="modal-text" style="color: #6b7280; line-height: 1.6; font-size: 1.1rem; margin-bottom: 25px;">
+                अंतिम रूप से सबमिट करने के बाद, सबमिट किए गए डेटा में कोई बदलाव संभव नहीं होगा। क्या आप आगे बढ़ना चाहते हैं?
+            </p>
+            <div style="display:flex; gap:1rem; justify-content:flex-end;">
+                <button class="btn btn-red" onclick="app.hideModal('submitModal')">⊗ नहीं</button>
+                <button class="btn btn-green" onclick="app.finalSubmit()">✓ हाँ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="script.js"></script>
+</body>
+</html>
