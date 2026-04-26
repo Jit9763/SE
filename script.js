@@ -5,6 +5,7 @@ const app = {
     state: {
         headName: '',
         mobile: '',
+        email: '',
         targetScreen: '',
         targetStep: 1,
         isLoggedIn: false
@@ -100,11 +101,9 @@ const app = {
             return;
         }
 
-        // Use JSONP for Google Sheets fetch (Bulletproof CORS workaround)
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbw8VXFGr9OylDrMdSPlsGFEtMta631lknrhj394E5F7FmxLq_KlPxYec7wvevC6BUXd/exec';
+        // Use Latest URL
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbx4KkUWwkSSNFXLmQ8bUIYvLiiXnC4aOLkNWD2aXjdbrbS86er9oC4BICzfjWvoZPPb/exec';
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
-        
-        console.log("Checking Google Sheets via JSONP...");
         
         window[callbackName] = (res) => {
             // Clean up
@@ -124,14 +123,11 @@ const app = {
         const script = document.createElement('script');
         script.id = callbackName;
         script.src = `${scriptURL}?mobile=${this.state.mobile}&sheetName=Sheet2&callback=${callbackName}`;
-        script.onerror = () => {
-            console.error("JSONP fetch failed");
-            this.goToScreen('screen-location', 1);
-        };
         document.body.appendChild(script);
     },
 
     showProfile: function(data) {
+        this.state.email = data.email || ""; // Restore email from data
         document.getElementById('prof-name').innerText = data.headName || "-";
         document.getElementById('prof-mobile').innerText = data.mobile || "-";
         document.getElementById('prof-email').innerText = data.email || "N/A";
@@ -153,10 +149,9 @@ const app = {
         
         if (otp.length === 4) {
             this.state.isLoggedIn = true;
-            // लॉगिन के तुरंत बाद चेक करें कि क्या यूजर पहले से रजिस्टर्ड है
             this.checkRegistrationStatus();
         } else {
-            alert('कृपया 4 अंकों का OTP दर्ज करें (कोई भी 4 अंक)');
+            alert('कृपया 4 अंकों का OTP दर्ज करें');
         }
     },
 
@@ -168,36 +163,13 @@ const app = {
 
     // Real Map Simulation (Leaflet.js)
     initMap: function() {
-        // Default to Ajmer
         map = L.map('realMap').setView([26.4499, 74.6399], 12);
-
-        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        });
-
-        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19,
-            attribution: 'Tiles &copy; Esri'
-        });
-
-        const hybridLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20,
             subdomains:['mt0','mt1','mt2','mt3'],
             attribution: '© Google'
-        });
+        }).addTo(map);
 
-        hybridLayer.addTo(map); // Default to hybrid
-
-        const baseMaps = {
-            "हाइब्रिड दृश्य (Hybrid)": hybridLayer,
-            "सड़क का नक्शा (Street)": streetLayer,
-            "सैटेलाइट दृश्य (Satellite)": satelliteLayer
-        };
-
-        L.control.layers(baseMaps).addTo(map);
-
-        // Click to place marker
         map.on('click', function(e) {
             if(marker) {
                 map.removeLayer(marker);
@@ -209,19 +181,14 @@ const app = {
     searchLocation: function() {
         const area = document.getElementById('locArea').value;
         if(!area) {
-            alert("कृपया खोजने के लिए स्थान का नाम दर्ज करें।");
+            alert("स्थान दर्ज करें");
             return;
         }
-        
-        // Simple mock search simulation, zoom in randomly
         if(map) {
             const currentCenter = map.getCenter();
-            // Just slightly move center to simulate search
             const newLat = currentCenter.lat + (Math.random() * 0.05 - 0.025);
             const newLng = currentCenter.lng + (Math.random() * 0.05 - 0.025);
-            
             map.flyTo([newLat, newLng], 15);
-            
             if(marker) map.removeLayer(marker);
             marker = L.marker([newLat, newLng]).addTo(map);
         }
@@ -230,17 +197,10 @@ const app = {
     confirmLocation: function() {
         const dist = document.getElementById('locDistrict').value;
         const area = document.getElementById('locArea').value;
-
-        if(!dist || !area) {
-            alert('कृपया सभी आवश्यक फील्ड (जिला, ग्राम/नगर) भरें।');
+        if(!dist || !area || !marker) {
+            alert('कृपया सभी आवश्यक फील्ड भरें और नक्शा चिह्नित करें।');
             return;
         }
-
-        if(!marker) {
-            alert('कृपया मानचित्र पर अपने आवास को चिह्नित करें।');
-            return;
-        }
-
         this.showModal('confirmLocModal');
     },
 
@@ -249,7 +209,6 @@ const app = {
         this.goToScreen('screen-q1', 2);
     },
 
-    // Questionnaire Flow
     saveAndProceed: function(nextScreen, stepNum) {
         this.goToScreen(nextScreen, stepNum);
     },
@@ -274,7 +233,7 @@ const app = {
             "q23": "स्नान सुविधा",
             "q24": "रसोई घर / एलपीजी",
             "q25": "मुख्य ईंधन",
-            "q26": "रेडियो/ट्रांजिस्टर",
+            "q26": "रेadio/ट्रांजिस्टर",
             "q27": "टेलीविजन",
             "q28": "इंटरनेट सुविधा",
             "q29": "लैपटॉप/कंप्युटर",
@@ -298,16 +257,13 @@ const app = {
             return input.value || "-";
         };
 
-        // Basic Profile
         document.getElementById('sum-headName').innerText = this.state.headName || "-";
         document.getElementById('sum-mobile').innerText = this.state.mobile || "-";
         
-        // Gender is special radio q12
         let gender = "चयन नहीं किया";
         document.getElementsByName('q12').forEach(r => { if(r.checked) gender = r.parentElement.innerText.trim(); });
         document.getElementById('sum-gender').innerText = gender;
         
-        // Location
         document.getElementById('sum-state').innerText = document.getElementById('loginState')?.value || "-";
         document.getElementById('sum-district').innerText = document.getElementById('locDistrict')?.value || "-";
         document.getElementById('sum-area').innerText = document.getElementById('locArea')?.value || "-";
@@ -321,21 +277,12 @@ const app = {
         ];
 
         sections.forEach(sec => {
-            html += `
-                <div class="summary-container">
-                    <div class="summary-header">
-                        ${sec.title}
-                    </div>`;
-            
+            html += `<div class="summary-container"><div class="summary-header">${sec.title}</div>`;
             for (let i = sec.range[0]; i <= sec.range[1]; i++) {
                 const qId = "q" + i;
                 const label = questionLabels[qId];
                 if (label) {
-                    html += `
-                        <div class="summary-row">
-                            <span>${label}:</span>
-                            <span>${getVal(qId)}</span>
-                        </div>`;
+                    html += `<div class="summary-row"><span>${label}:</span><span>${getVal(qId)}</span></div>`;
                 }
             }
             html += `</div>`;
@@ -344,17 +291,12 @@ const app = {
         document.getElementById('summarySections').innerHTML = html;
     },
 
-    // Submission Flow
     finalSubmit: function() {
         this.hideModal('submitModal');
-        
-        // Generate SE ID format: H + 10 digits
         const randomDigits = Math.floor(Math.random() * 9000000000 + 1000000000);
         const seID = `H${randomDigits}`;
-        
         document.getElementById('finalSEID').innerText = seID;
 
-        // 1. Prepare Full Data Object matching your Google Script structure
         const answers = {};
         for (let i = 1; i <= 34; i++) {
             const qId = 'q' + i;
@@ -362,7 +304,6 @@ const app = {
             if (input) {
                 answers[qId] = input.value || "";
             } else {
-                // Check radio group
                 const radios = document.getElementsByName(qId);
                 if (radios.length > 0) {
                     let val = "";
@@ -381,14 +322,17 @@ const app = {
             mobile: this.state.mobile,
             email: this.state.email,
             sheetName: "Sheet2", // Target Sheet2 specifically
-            answers: answers
+            answers: answers,
+            sendEmail: true,
+            emailSubject: "Confirmation: Census 2027 Self-Enumeration",
+            emailBody: `Dear Respondent,\nThank you for completing self-enumeration.\nYour SE ID is\n${seID}.\nPlease keep this safe and share it with\nEnumerator when asked.\n- Census2027`
         };
 
         // 2. Save to LocalStorage
         localStorage.setItem(`census_se_${this.state.mobile}`, JSON.stringify(submissionData));
 
-        // 3. Save to Google Sheets (using POST as per your script)
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbw8VXFGr9OylDrMdSPlsGFEtMta631lknrhj394E5F7FmxLq_KlPxYec7wvevC6BUXd/exec';
+        // 4. Send to Google Sheets
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbx4KkUWwkSSNFXLmQ8bUIYvLiiXnC4aOLkNWD2aXjdbrbS86er9oC4BICzfjWvoZPPb/exec';
         
         fetch(scriptURL, {
             method: 'POST',
